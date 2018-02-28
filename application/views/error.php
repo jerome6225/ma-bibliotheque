@@ -1,0 +1,1 @@
+<div class="col-xs-12 alert alert-danger"><?php echo $error_text ?></div>
