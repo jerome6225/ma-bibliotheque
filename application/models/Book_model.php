@@ -11,7 +11,7 @@ class Book_model extends CI_Model
      * 
      * @returns Infos du livre
      */
-    public function setBookInfo($isbn)
+    public function setBookInfo($isbn, $files)
     {
         $this->load->database();
 
@@ -76,30 +76,105 @@ class Book_model extends CI_Model
                 }
             }
 
+            $c = 0;
             // Element genre
             foreach ($page->getElementsByTagName('div') as $div) {
-                if ($div->getAttribute('id') == "detail_bullets_id") {
-                    foreach ($div->getElementsByTagName('li') as $li){
-                        if (stristr($li->nodeValue, 'Collection'))
-                        {
-                            $expl  = explode(':', $li->nodeValue);
-                            $genre = trim($expl[1]);
-                        }
-                            
+                if ($div->getAttribute('id') == "wayfinding-breadcrumbs_feature_div") {
+                    foreach ($div->getElementsByTagName('li') as $li) {
+                        foreach ($li->getElementsByTagName('a') as $a) {
+                            if ($a->getAttribute('class') == "a-link-normal a-color-tertiary")
+                            {
+                                $c++;
+                                if ($c == 3)
+                                    $genre = trim($a->textContent);
+                            }
+                        }    
                     }
                 }
             }
-            
+
             $author = substr($author, 0, -1);
             $this->setBook($isbn, $title, $genre, $author, $imgUrl);
         }
 
         if (null != $this->session->userdata('member-id'))
         {
-            $book = $this->getBook($isbn);
-
-            $this->addBookToCustomer($this->session->userdata('member-id'), $book->id_book);
+            $book  = $this->getBook($isbn);
+            $ebook = false;
+            $ext   = '';
+            /**
+             * Enregistrement de l'ebook si il n'existe pas 
+             */
+            if ($files)
+            {
+                $expl  = explode('.', $files['book']['name']);
+                $ext   = end($expl);
+                $name  = str_replace(' ', '_', $book->title);
+                $idExt = $this->getIdFormatEbook($ext);
+                if (!file_exists('./assets/ebooks/'.$name.'.'.$ext))
+                {
+                    if (!move_uploaded_file($files['book']['tmp_name'], './assets/ebooks/'.$name.'.'.$ext))
+                    {
+                        return false;
+                    }
+                    
+                    $this->addEbook($book->id_book, $idExt);
+                }
+                    
+                $ebook = true;
+            }
+            $this->addBookToCustomer($this->session->userdata('member-id'), $book->id_book, $ebook, $idExt);
         }
+    }
+
+    /**
+     * indique si un ebook est téléchargé pour ce livre
+     * 
+     * @params $idBook Id du livre
+     * 
+     * @params $idExt Id de l'extension du livre
+     */
+    public function addEbook($idBook, $idExt)
+    {
+        return $this->db->set('id_book', $idBook)
+            ->set('id_ebook_format', $idExt)
+            ->insert('book_ebook_format');
+    }
+
+    /**
+     * Retourne l'id du format de l'ebook
+     * 
+     * @params $ext extension du livre
+     * 
+     * @returns l'id de l'extension de l'ebook
+     */
+    public function getIdFormatEbook($ext)
+    {
+        $result = $this->db->select('id_ebook_format')
+            ->from('ebook_format')
+            ->where('format', $ext)
+            ->get()
+            ->result();
+        
+        return (count($result) > 0) ? $result[0]->id_ebook_format : false;
+    }
+
+    /**
+     * Retourne le format de l'ebook
+     * 
+     * @params $idExt Id de l'extension du livre
+     * 
+     * @returns l'extension de l'ebook
+     */
+    public function getFormatEbook($idExt)
+    {
+        $result = $this->db->select('format')
+            ->from('ebook_format')
+            ->where('id_ebook_format', $idExt)
+            ->get()
+            ->result();
+        
+        return (count($result) > 0) ? $result[0]->format : false;
     }
 
     /**
@@ -109,22 +184,33 @@ class Book_model extends CI_Model
      * 
      * @params $idBook Id du livre
      */
-    public function addBookToCustomer($customer, $idBook)
+    public function addBookToCustomer($customer, $idBook, $ebook, $idExt)
     {
         $result = $this->db->select('*')
             ->from('customer_book')
             ->where('id_customer', $customer)
-            ->where('id_book',   $idBook)
+            ->where('id_book', $idBook)
             ->get()
             ->result();
 
         if (!$result)
         {
-            return $this->db->set('id_customer',  $customer)
-                ->set('id_book',   $idBook)
+            return $this->db->set('id_customer', $customer)
+                ->set('id_book', $idBook)
+                ->set('ebook', $ebook)
+                ->set('ext', $idExt)
                 ->insert('customer_book');
         }
+        else
+        {
+            return $this->db->set('ebook', $ebook)
+                ->set('ext', $idExt)
+                ->where('id_customer', $customer)
+                ->where('id_book', $idBook)
+                ->update('customer_book');
+        }
     }
+
     /**
      * Récupère les infos du livre en BDD
      * 
@@ -140,7 +226,59 @@ class Book_model extends CI_Model
             ->get()
             ->result();
 
-        return $result[0];
+        return (count($result) > 0) ? $result[0] : false;
+    }
+
+    /**
+     * Récupère les infos du livre en BDD
+     * 
+     * @params $idBook Id du livre
+     * 
+     * @returns les infos du livre
+     */
+    public function getBookById($idBook)
+    {
+        $result = $this->db->select('*')
+            ->from($this->table)
+            ->where('id_book', $idBook)
+            ->get()
+            ->result();
+
+        return (count($result) > 0) ? $result[0] : false;
+    }
+
+    /**
+     * Récupère les infos des livres en BDD
+     * 
+     * @params $idCustomer Id du customer
+     * 
+     * @returns les infos des livres
+     */
+    public function getBooks($idCustomer)
+    {
+        $books = array();
+        $result = $this->db->select('*')
+            ->from('customer_book')
+            ->where('id_customer', $idCustomer)
+            ->get()
+            ->result();
+
+        if (count($result) > 0)
+        {
+            foreach ($result as $k => $r)
+            {
+                $b = $this->db->select('*')
+                ->from($this->table)
+                ->where('id_book', $r->id_book)
+                ->get()
+                ->result();
+
+                $books[$k] = get_object_vars($b[0]);
+                $books[$k]['ebook'] = $r->ebook;
+            }
+        }
+
+        return $books;
     }
 
     /**
@@ -163,5 +301,27 @@ class Book_model extends CI_Model
             ->set('date_add', 'NOW()', false)
             ->set('date_upd', 'NOW()', false)
             ->insert($this->table);
+    }
+
+    /**
+     * Récupère les infos customer book
+     * Sert pour savoir si un customer possède l'ebook
+     * 
+     * @params $idCustomer Id du customer
+     * 
+     * @params $idBook Id du livre
+     * 
+     * @returns customer_book
+     */
+    public function getCustomerBook($idCustomer, $idBook)
+    {
+        $result = $this->db->select('*')
+            ->from('customer_book')
+            ->where('id_customer', $idCustomer)
+            ->where('id_book', $idBook)
+            ->get()
+            ->result();
+
+        return (count($result) > 0) ? $result[0] : false;
     }
 }

@@ -1,5 +1,13 @@
-.sidebarStyle {
+.jr_sidebar {
   padding: 0;
+  height: 100%;
+  position: fixed;
+  width: 250px;
+  left: 0;
+  z-index: 500;
+  float: left;
+  top: 54px;
+  background-color: #333333;
 }
 
 .nav-pills > li.active > a, .nav-pills > li.active > a:focus, .nav-pills > li.active > a:hover {
@@ -9,4 +17,39 @@
 
 .nav-pills > li > a {
   border-radius: 0px;
+}
+
+/** Mobile **/
+
+@media screen and (max-width: 992px) {
+  .navbar {
+    position: fixed;
+    top: 0;
+    right: 0;
+  }
+
+  .navbar-inverse {
+    background-image: -webkit-linear-gradient(top,#333333 0,#333333 100%);
+    background-image: -o-linear-gradient(top,#333333 0,#333333 100%);
+    background-image: -webkit-gradient(linear,left top,left bottom,from(#333333),to(#333333));
+    background-image: linear-gradient(to bottom,#333333 0,#333333 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#333333', endColorstr='#333333', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+    background-repeat: repeat-x;
+    border: none;
+  }
+
+  .navbar-inverse .navbar-toggle {
+    border-color: #969696;
+  }
+
+  .navbar-inverse .navbar-toggle .icon-bar {
+    background-color: #969696;
+  }
+
+  /*.navbar-collapse {
+    position: fixed;
+    top: 50px;
+    left: 0;
+  }*/
 }

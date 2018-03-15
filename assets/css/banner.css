@@ -3,4 +3,8 @@
     padding: 10px 20px;
     color: #969696;
     font-size: 24px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 500;
 }

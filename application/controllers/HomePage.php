@@ -15,16 +15,20 @@ class HomePage extends CI_Controller
 	public function index()
 	{
 		//$this->session->sess_destroy();
-
+		$this->load->helper('url');
 		$session = false;
+
+		if (null != $this->session->userdata('member-id'))
+		{
+			$session = true;
+			redirect('book/list');
+		}
+			
 		//  Chargement des bibliothèques
 		$this->load->library('layout');
 		$this->load->library('form_validation');
-		$this->load->helper('url');
 	
 		//  Le formulaire est invalide ou vide
-		if (null != $this->session->userdata('member-id'))
-			$session = true;
 
 		$data = array(
 			'email'      => $this->input->post('email'),
@@ -66,7 +70,7 @@ class HomePage extends CI_Controller
 			$this->session->set_userdata('firstname', $customer->firstname);
 			$this->session->set_userdata('lastname', $customer->lastname);
 
-			redirect('customer/list');
+			redirect('book/list');
 		}
 		else
 		{
@@ -113,7 +117,7 @@ class HomePage extends CI_Controller
 				$this->session->set_userdata('firstname', $customer->firstname);
 				$this->session->set_userdata('lastname', $customer->lastname);
 
-				redirect('customer/list');
+				redirect('book/list');
 			}
 			else
 			{

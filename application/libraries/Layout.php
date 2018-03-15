@@ -10,7 +10,10 @@ class Layout
     {
         $this->CI =& get_instance();
         
-        $this->var['output'] = '';
+        $this->var['output']      = '';
+        $this->var['banner']      = '';
+        $this->var['menu']        = '';
+        $this->var['menu_mobile'] = '';
         
         //	Le titre est composé du nom de la méthode et du nom du contrôleur
         //	La fonction ucfirst permet d'ajouter une majuscule
@@ -83,9 +86,9 @@ class Layout
 	public function view($name, $data=array(), $loadViews=array())
 	{
         $this->addCss('bootstrap.min');
-		
+        $this->addCss('style');
+        $this->addJs('jquery-1.11.2.min');
         $this->addJs('bootstrap.min');
-		$this->addJs('jquery-1.11.2.min');
         
         foreach ($loadViews as $load)
         {
@@ -115,13 +118,18 @@ class Layout
     {
         $this->addCss('bootstrap-theme.min');
         $this->addCss('menu');
-        $this->addJs('npm');
-        $this->views('menu', $data);
+        //$this->addJs('npm');
+ 
+        $this->var['menu']        .= $this->CI->load->view('menu', $data, true);
+        $this->var['menu_mobile'] .= $this->CI->load->view('menu_mobile', $data, true);
+        return $this;
     }
 
     public function loadBanner($data)
     {
         $this->addCss('banner');
-        $this->views('banner', $data);
+
+        $this->var['banner'] .= $this->CI->load->view('banner', $data, true);
+        return $this;
     }
 }
