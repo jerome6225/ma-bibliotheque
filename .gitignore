@@ -1,13 +1,13 @@
 .DS_Store
-app/config/config.php
-app/config/database.php
-app/cache/*
-!app/cache/index.html
+application/config/config.php
+application/config/database.php
+application/cache/*
+!application/cache/index.html
 
-app/logs/*
-!app/logs/index.html
+application/logs/*
+!application/logs/index.html
 
-!app/*/.htaccess
+!application/*/.htaccess
 
 composer.lock
 
