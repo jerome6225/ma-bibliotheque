@@ -55,7 +55,7 @@ if ( ! function_exists('img_url'))
 {
     function img_url($nom)
     {
-        return base_url() . 'assets/images/' . $nom;
+        return base_url() . 'assets/img/' . $nom;
     }
 }
 

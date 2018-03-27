@@ -21,7 +21,7 @@ class HomePage extends CI_Controller
 		if (null != $this->session->userdata('member-id'))
 		{
 			$session = true;
-			redirect('book/list');
+			redirect('bookList/list');
 		}
 			
 		//  Chargement des bibliothèques
@@ -70,11 +70,16 @@ class HomePage extends CI_Controller
 			$this->session->set_userdata('firstname', $customer->firstname);
 			$this->session->set_userdata('lastname', $customer->lastname);
 
-			redirect('book/list');
+			redirect('bookList/list');
 		}
 		else
 		{
+			$this->load->library('form_validation');
+			
 			$data['error']['error_text'] = 'Erreur Email ou Mot de passe';
+			$data['banner']['session']   = false;
+			$data['url_login']           = site_url(array('homePage', 'login'));
+			$data['url_create']          = site_url(array('homePage', 'create'));
 
 			$this->loadForm($data, array('banner', 'error'));
 		}
@@ -117,7 +122,7 @@ class HomePage extends CI_Controller
 				$this->session->set_userdata('firstname', $customer->firstname);
 				$this->session->set_userdata('lastname', $customer->lastname);
 
-				redirect('book/list');
+				redirect('bookList/list');
 			}
 			else
 			{

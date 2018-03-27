@@ -15,7 +15,6 @@
 			<div class="col-xs-12 jr_banner"><?php echo $banner; ?></div>
 			<?php if ($menu != ''): ?>
 				<div class="jr_sidebar hidden-xs hidden-sm"><?php echo $menu; ?></div>
-				<div class="jr_sidebar_mobile visible-xs visible-sm"><?php echo $menu_mobile; ?></div>
 				<div class="jr_content"><?php echo $output; ?></div>
 			<?php else: ?>
 			<div class="jr_content_without_menu"><?php echo $output; ?></div>

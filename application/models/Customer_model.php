@@ -20,7 +20,7 @@ class Customer_model extends CI_Model
             ->get()
             ->result();
 
-        return $result[0];
+        return (count($result) > 0) ? $result[0] : false;
     }
 
     public function isEmailExist($email)

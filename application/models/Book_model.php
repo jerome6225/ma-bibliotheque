@@ -36,6 +36,7 @@ class Book_model extends CI_Model
             $title  = '';
             $author = '';
             $imgUrl = '';
+            $genre  = array();
             $words  = array('Amazon', 'recherche', 'Auteurs');
 
             // Element url de l'image
@@ -61,10 +62,8 @@ class Book_model extends CI_Model
                             $notWord = true;
 
                             // On vérifie les mots interdits
-                            foreach ($words as $word)
-                            {
-                                if (strpos($domAuthor->textContent, $word))
-                                {
+                            foreach ($words as $word) {
+                                if (strpos($domAuthor->textContent, $word)) {
                                     $notWord = false;
                                 }
                             }
@@ -82,17 +81,15 @@ class Book_model extends CI_Model
                 if ($div->getAttribute('id') == "wayfinding-breadcrumbs_feature_div") {
                     foreach ($div->getElementsByTagName('li') as $li) {
                         foreach ($li->getElementsByTagName('a') as $a) {
-                            if ($a->getAttribute('class') == "a-link-normal a-color-tertiary")
-                            {
-                                $c++;
-                                if ($c == 3)
-                                    $genre = trim($a->textContent);
+                            if ($a->getAttribute('class') == "a-link-normal a-color-tertiary") {
+                                    $genre[] = trim($a->textContent);
                             }
                         }    
                     }
                 }
             }
 
+            $genre = end($genre);
             $author = substr($author, 0, -1);
             $this->setBook($isbn, $title, $genre, $author, $imgUrl);
         }
@@ -100,12 +97,13 @@ class Book_model extends CI_Model
         if (null != $this->session->userdata('member-id'))
         {
             $book  = $this->getBook($isbn);
+
             $ebook = false;
-            $ext   = '';
+            $idExt = '';
             /**
              * Enregistrement de l'ebook si il n'existe pas 
              */
-            if ($files)
+            if ($files['book']['name'] != '')
             {
                 $expl  = explode('.', $files['book']['name']);
                 $ext   = end($expl);
@@ -323,5 +321,62 @@ class Book_model extends CI_Model
             ->result();
 
         return (count($result) > 0) ? $result[0] : false;
+    }
+    
+
+    /**
+     * Récupère les infos des livres en BDD
+     * 
+     * @params $idCustomer Id du customer
+     * 
+     * @returns les infos des livres
+     */
+    public function getBooksByGenre($idCustomer, $genre)
+    {
+        $books = array();
+        $result = $this->db->select('*')
+            ->from('customer_book')
+            ->where('id_customer', $idCustomer)
+            ->get()
+            ->result();
+
+        if (count($result) > 0) {
+            foreach ($result as $k => $r) {
+                $b = $this->db->select('*')
+                ->from($this->table)
+                ->where('id_book', $r->id_book)
+                ->where('genre', trim($genre))
+                ->get()
+                ->result();
+
+                if (count($b) > 0) {
+                    $books[$k] = get_object_vars($b[0]);
+                    $books[$k]['ebook'] = $r->ebook;
+                }
+            }
+        }
+
+        return $books;
+    }
+
+    /**
+     * Recherche les informations suivant la variable
+     * 
+     * @params $search Mot à chercher
+     * 
+     * @returns 
+     */
+    public function getBooksSearch($search)
+    {
+        if (isset($search)) {
+            return $this->db->select('* FROM `book` 
+                WHERE CONCAT_WS( "~", COALESCE(`author`, ""), COALESCE(`title`, ""), COALESCE(`genre`, ""))
+                LIKE "%'.$search.'%"')
+                ->get()
+                ->result();
+        }
+        else {
+            return false;
+        }
     }
 }
