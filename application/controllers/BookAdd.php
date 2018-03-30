@@ -21,6 +21,9 @@ class BookAdd extends CI_Controller
             $this->load->model('book_model', 'bookManager');
 
             $dataBook = get_object_vars($this->bookManager->getBook($isbn));
+
+            $dataBook['isDescription'] = $this->bookManager->isDescription($dataBook['id_book']);
+
             $dataBook['hasEbook'] = false;
             $dataBook['page']     = 'mon_enregistrement_de_livre';
             $dataBook['banner']   = array(
@@ -36,7 +39,7 @@ class BookAdd extends CI_Controller
                 'url_list' => site_url(array('bookList', 'list')),
             );
             
-            $data = array('url_add_book' => site_url(array('book', 'addBook')));
+            $data = array('url_add_book' => site_url(array('bookAdd', 'addBook')));
 
             $this->layout->setTitle('Enregistrer un livre');
             $this->layout->views('add_book', $data)->view('book_page', $dataBook, array('banner', 'menu'));
@@ -45,7 +48,7 @@ class BookAdd extends CI_Controller
         else
         {
             $data = array(
-                'url_add_book' => site_url(array('book', 'addBook')),
+                'url_add_book' => site_url(array('bookAdd', 'addBook')),
                 'banner' => array(
                     'session'         => $session,
                     'url_deconnexion' => site_url(array('homePage', 'deconnexion')),
@@ -85,7 +88,7 @@ class BookAdd extends CI_Controller
             $this->bookManager->setBookInfo($this->input->post('isbn'), $_FILES);
 
             $this->session->set_userdata('isbn', $this->input->post('isbn'));
-            redirect('book/displayAddBook');
+            redirect('bookAdd/displayAddBook');
         }
     }
 }

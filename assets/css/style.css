@@ -1,6 +1,6 @@
 body {font-family: "Comic Sans MS", cursive, sans-serif;}
 
-.jr_content > div {
+.jr_content div.content_page {
     margin-left: 200px;
     margin-top: 70px;
 }
@@ -55,6 +55,9 @@ body {font-family: "Comic Sans MS", cursive, sans-serif;}
     margin-bottom: 10px;
 }
 
+.to_download_book, .to_read_book {
+    margin-top:15px;
+}
 .easy-autocomplete {display: inline-block}
 @media screen and (max-width: 1450px) {
     .category-img img {height: 150px;}
@@ -66,9 +69,8 @@ body {font-family: "Comic Sans MS", cursive, sans-serif;}
 }
 
 @media screen and (max-width: 992px) {
-    .jr_content > div {margin-left: 0;}
+    .jr_content div.content_page {margin-left: 0; margin-top: 80px;}
     .category-img img {height: 190px;}
-    .jr_content > div {margin-top: 80px;}
 }
 @media screen and (max-width: 768px) {
     .category-img img {height: 200px;}

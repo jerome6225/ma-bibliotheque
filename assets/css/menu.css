@@ -4,7 +4,7 @@
   position: fixed;
   width: 200px;
   left: 0;
-  z-index: 500;
+  /*z-index: 500;*/
   float: left;
   top: 54px;
   background-color: #333333;
@@ -93,4 +93,8 @@
   .nav > li > a {margin-left: 15px; font-size: 16px;}
   .nav-pills-submenu > li > a {margin-left: 25px;}
   .nav-pills > li {float: inherit;}
+}
+
+@media screen and  (max-width: 768px) {
+  .jr_sidebar {z-index: 500;}
 }

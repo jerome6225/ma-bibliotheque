@@ -18,110 +18,39 @@ class Book_model extends CI_Model
         // si le livre n'est pas dans la BDD
         if (!$this->getBook($isbn))
         {
-            // Récupération des informations sur la page Amazon
-            $url = 'https://www.amazon.fr/gp/product/'.$isbn.'/';
-            
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $url);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            curl_setopt($ch, CURLOPT_USERAGENT, '');
-            
-            $resultat = curl_exec ($ch);
-            curl_close($ch);
-
-            // Parcours de la page HTML
-            $page = new DOMDocument();
-            @$page->loadHTML($resultat);
-
-            $title  = '';
-            $author = '';
-            $imgUrl = '';
-            $genre  = array();
-            $words  = array('Amazon', 'recherche', 'Auteurs');
-
-            // Element url de l'image
-            foreach ($page->getElementsByTagName('img') as $img){
-                if ($img->getAttribute('id') == "imgBlkFront"){
-                    $element = explode('"', $img->getAttribute('data-a-dynamic-image'));
-                    $imgUrl  = $element[1];
-                }
-            }
-
-            // Element title
-            foreach ($page->getElementsByTagName('span') as $span){
-                if ($span->getAttribute('id') == "productTitle"){
-                    $title = $span->textContent;
-                }
-            }
-
-            // Element Auteur
-            foreach ($page->getElementsByTagName('div') as $div){
-                if ($div->getAttribute('id') == "byline"){
-                    foreach ($div->getElementsByTagName('a') as $domAuthor){
-                        if ($domAuthor->getAttribute('href') != "#" && $domAuthor->getAttribute('href') != "javascript:void(0)"){
-                            $notWord = true;
-
-                            // On vérifie les mots interdits
-                            foreach ($words as $word) {
-                                if (strpos($domAuthor->textContent, $word)) {
-                                    $notWord = false;
-                                }
-                            }
-
-                            if ($notWord)
-                                $author .= $domAuthor->textContent.',';
-                        }
-                    }
-                }
-            }
-
-            $c = 0;
-            // Element genre
-            foreach ($page->getElementsByTagName('div') as $div) {
-                if ($div->getAttribute('id') == "wayfinding-breadcrumbs_feature_div") {
-                    foreach ($div->getElementsByTagName('li') as $li) {
-                        foreach ($li->getElementsByTagName('a') as $a) {
-                            if ($a->getAttribute('class') == "a-link-normal a-color-tertiary") {
-                                    $genre[] = trim($a->textContent);
-                            }
-                        }    
-                    }
-                }
-            }
-
-            $genre = end($genre);
-            $author = substr($author, 0, -1);
-            $this->setBook($isbn, $title, $genre, $author, $imgUrl);
+            $this->getBookFromUrl($isbn);
         }
 
         if (null != $this->session->userdata('member-id'))
         {
             $book  = $this->getBook($isbn);
 
-            $ebook = false;
-            $idExt = '';
-            /**
-             * Enregistrement de l'ebook si il n'existe pas 
-             */
-            if ($files['book']['name'] != '')
-            {
-                $expl  = explode('.', $files['book']['name']);
-                $ext   = end($expl);
-                $name  = str_replace(' ', '_', $book->title);
-                $idExt = $this->getIdFormatEbook($ext);
-                if (!file_exists('./assets/ebooks/'.$name.'.'.$ext))
+            if ($book) {
+                $ebook = false;
+                $idExt = '';
+                /**
+                 * Enregistrement de l'ebook si il n'existe pas 
+                 */
+                if ($files['book']['name'] != '')
                 {
-                    if (!move_uploaded_file($files['book']['tmp_name'], './assets/ebooks/'.$name.'.'.$ext))
+                    $expl  = explode('.', $files['book']['name']);
+                    $ext   = end($expl);
+                    $name  = str_replace(' ', '_', $book->title);
+                    $idExt = $this->getIdFormatEbook($ext);
+                    if (!file_exists('./assets/ebooks/'.$name.'.'.$ext))
                     {
-                        return false;
+                        if (!move_uploaded_file($files['book']['tmp_name'], './assets/ebooks/'.$name.'.'.$ext))
+                        {
+                            return false;
+                        }
+                        
+                        $this->addEbook($book->id_book, $idExt);
                     }
-                    
-                    $this->addEbook($book->id_book, $idExt);
+                        
+                    $ebook = true;
                 }
-                    
-                $ebook = true;
+                $this->addBookToCustomer($this->session->userdata('member-id'), $book->id_book, $ebook, $idExt);
             }
-            $this->addBookToCustomer($this->session->userdata('member-id'), $book->id_book, $ebook, $idExt);
         }
     }
 
@@ -370,7 +299,7 @@ class Book_model extends CI_Model
     {
         if (isset($search)) {
             return $this->db->select('* FROM `book` 
-                WHERE CONCAT_WS( "~", COALESCE(`author`, ""), COALESCE(`title`, ""), COALESCE(`genre`, ""))
+                WHERE CONCAT_WS( "~", COALESCE(`isbn`, ""), COALESCE(`author`, ""), COALESCE(`title`, ""), COALESCE(`genre`, ""))
                 LIKE "%'.$search.'%"')
                 ->get()
                 ->result();
@@ -378,5 +307,132 @@ class Book_model extends CI_Model
         else {
             return false;
         }
+    }
+
+    /**
+     * Vérifie si la valeur est bien un ISBN
+     * 
+     * @params $isbn valeur à vérifier
+     * 
+     * @returns integer or false
+     */
+    function isIsbn($isbn)
+    {
+        $regex = '/\b(?:ISBN(?:: ?| ))?((?:97[89])?\d{9}[\dx])\b/i';
+
+        if (preg_match($regex, str_replace('-', '', $isbn), $matches)) {
+            return (10 === strlen($matches[1])) ? 1 : false;
+        }
+        return false;
+    }
+
+    /**
+     * Récupère les info du livre 
+     */
+    public function getBookFromUrl($isbn)
+    {
+        $this->load->database();
+
+        // Récupération des informations sur la page Amazon
+        $url = 'https://www.amazon.fr/gp/product/'.$isbn.'/';
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_USERAGENT, '');
+        
+        $resultat = curl_exec ($ch);
+        curl_close($ch);
+
+        // Parcours de la page HTML
+        $page = new DOMDocument();
+        @$page->loadHTML($resultat);
+
+        $title  = '';
+        $author = '';
+        $imgUrl = '';
+        $genre  = array();
+        $words  = array('Amazon', 'recherche', 'Auteurs');
+
+        // Element url de l'image
+        foreach ($page->getElementsByTagName('img') as $img){
+            if ($img->getAttribute('id') == "imgBlkFront"){
+                $element = explode('"', $img->getAttribute('data-a-dynamic-image'));
+                $imgUrl  = $element[1];
+            }
+        }
+
+        // Element title
+        foreach ($page->getElementsByTagName('span') as $span){
+            if ($span->getAttribute('id') == "productTitle"){
+                $title = $span->textContent;
+            }
+        }
+
+        // Element Auteur
+        foreach ($page->getElementsByTagName('div') as $div){
+            if ($div->getAttribute('id') == "byline"){
+                foreach ($div->getElementsByTagName('a') as $domAuthor){
+                    if ($domAuthor->getAttribute('href') != "#" && $domAuthor->getAttribute('href') != "javascript:void(0)"){
+                        $notWord = true;
+
+                        // On vérifie les mots interdits
+                        foreach ($words as $word) {
+                            if (strpos($domAuthor->textContent, $word)) {
+                                $notWord = false;
+                            }
+                        }
+
+                        if ($notWord)
+                            $author .= $domAuthor->textContent.',';
+                    }
+                }
+            }
+        }
+
+        $c = 0;
+        // Element genre
+        foreach ($page->getElementsByTagName('div') as $div) {
+            if ($div->getAttribute('id') == "wayfinding-breadcrumbs_feature_div") {
+                foreach ($div->getElementsByTagName('li') as $li) {
+                    foreach ($li->getElementsByTagName('a') as $a) {
+                        if ($a->getAttribute('class') == "a-link-normal a-color-tertiary") {
+                                $genre[] = trim($a->textContent);
+                        }
+                    }    
+                }
+            }
+        }
+
+        $genre = ($genre) ? end($genre) : '';
+        $author = ($author) ? substr($author, 0, -1) : '';
+
+
+        if ($title) {
+            $this->setBook($isbn, $title, $genre, $author, $imgUrl);
+        }
+    }
+
+    public function setDescription($idBook, $description)
+    {
+        return $this->db->set('resume',  $description)
+            ->set('date_upd', 'NOW()', false)
+            ->where('id_book', $idBook)
+            ->update($this->table);
+    }
+
+    public function isDescription($idBook)
+    {
+        $result = $this->db->select('resume')
+            ->from($this->table)
+            ->where('id_book', $idBook)
+            ->get()
+            ->result();
+
+        if ($result[0]->resume == NULL) {
+            return 0;
+        }
+
+        return 1;
     }
 }

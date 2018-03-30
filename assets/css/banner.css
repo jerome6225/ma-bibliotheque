@@ -6,12 +6,12 @@
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 500;
+    /*z-index: 500;*/
 }
 
 .jr-bonjour-banner div {padding: 0;}
 @media screen and  (max-width: 768px) {
     .jr-title-banner, .jr-bonjour-banner {padding-left: 0;} 
     .jr-bonjour-banner {margin-top:5px; padding-right: 0;}
-    .jr_banner {font-size: 18px;}
+    .jr_banner {font-size: 18px;z-index: 500;}
 }

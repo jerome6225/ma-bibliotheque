@@ -8,7 +8,6 @@ class BookSearch extends CI_Controller
      */
     public function ajaxSearch()
     {
-        $this->load->library('layout');
         $this->load->model('book_model', 'bookManager');
 
         $books      = array();
@@ -58,9 +57,16 @@ class BookSearch extends CI_Controller
         $idCustomer = $this->session->userdata('member-id');
         $dataBooks  = $this->bookManager->getBooksSearch($search);
         
-        foreach ($dataBooks as &$b) {
-            
+        if (!$dataBooks) {
+            $isIsbn = $this->bookManager->isIsbn($search);
+
+            if ($isIsbn != false) {
+                $this->bookManager->getBookFromUrl($search);
+                $dataBooks[0] = $this->bookManager->getBook($search);
+            }
         }
+
+        /* Si plusieurs livre on affiche la page liste */
         if (count($dataBooks) > 1) {
             $genres = array();
             foreach ($dataBooks as &$book) {
@@ -86,27 +92,30 @@ class BookSearch extends CI_Controller
             $this->layout->setTitle('Mes livres');
             $this->layout->view('list', $data, array('banner', 'menu'));
         }
+        /** sinon on affiche la fiche du livre */
         else {
             $dataBook              = get_object_vars($dataBooks[0]);
             $name                  = str_replace(' ', '_', $dataBook['title']);
             $customerBook          = $this->bookManager->getCustomerBook($idCustomer, $dataBook['id_book']);
             $dataBook['urlEbook']  = '';
             $dataBook['nameEbook'] = '';
+            $dataBook['hasEbook']  = false;
 
-            if ($customerBook->ext != '')
-            {
-                $ext = $this->bookManager->getFormatEbook($customerBook->ext);
+            if ($customerBook) {
+                if ($customerBook->ext != '') {
+                    $ext = $this->bookManager->getFormatEbook($customerBook->ext);
 
-                if (file_exists('./assets/ebooks/'.$name.'.'.$ext))
-                {
-                    $dataBook['urlEbook']  = site_url(array('book', 'downloadEbook', $name, $ext));
-                    $dataBook['nameEbook'] = $name.'.'.$ext;
+                    if (file_exists('./assets/ebooks/'.$name.'.'.$ext))
+                    {
+                        $dataBook['urlEbook']  = site_url(array('book', 'downloadEbook', $name, $ext));
+                        $dataBook['nameEbook'] = $name.'.'.$ext;
+                    }
                 }
+                $dataBook['hasEbook'] = $customerBook->ebook;
             }
-
-            $dataBook['hasEbook'] = $customerBook->ebook;
-            $dataBook['page']     = 'mon_livre';
-            $dataBook['banner']   = array(
+            
+            $dataBook['page']   = 'mon_livre';
+            $dataBook['banner'] = array(
                 'session'         => $session,
                 'url_deconnexion' => site_url(array('homePage', 'deconnexion')),
                 'firstname'       => $this->session->userdata('firstname'),

@@ -128,13 +128,25 @@ class Layout
 	{
         $this->addCss('bootstrap.min');
         $this->addCss('style');
+        $this->addCss('annotations');
+        $this->addCss('main');
+        $this->addCss('normalize');
+        $this->addCss('popup');
         $this->addCss('easy-autocomplete.min');
         $this->addCss('easy-autocomplete.theme.min');
-        $this->addJs('jquery-1.12.4.min');
+        $this->addJs('jquery.min');
         $this->addJs('bootstrap.min');
         $this->addJs('jquery.easy-autocomplete.min');
+        $this->addJs('epub.min');
+        $this->addJs('reader.min');
+        $this->addJs('highlight');
+        $this->addJs('hooks.min');
+        $this->addJs('screenfull.min');
+        $this->addJs('zip.min');
         $this->addJs('ajax');
         $this->addJs('style');
+        $this->addJs('plugins/hypothesis');
+        $this->addJs('plugins/search');
 
         foreach ($loadViews as $load)
         {
