@@ -177,7 +177,8 @@ class Book_model extends CI_Model
     /**
      * Récupère les infos des livres en BDD
      * 
-     * @params $idCustomer Id du customer
+     * @params $idCustomer  Id du customer
+     * @params $paramSearch Pour savoir si on recherche par rapport aux livres lus
      * 
      * @returns les infos des livres
      */
@@ -211,8 +212,9 @@ class Book_model extends CI_Model
                 ->get()
                 ->result();
 
-                $books[$k] = get_object_vars($b[0]);
-                $books[$k]['ebook'] = $r->ebook;
+                $books[$k]                 = get_object_vars($b[0]);
+                $books[$k]['ebook']        = $r->ebook;
+                $books[$k]['already_read'] = $r->already_read;
             }
         }
 

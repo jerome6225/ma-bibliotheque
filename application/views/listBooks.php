@@ -6,6 +6,9 @@
                     <div class="col-xs-5">
                         <div class="category-img row">
                             <img class="col-xs-12" src="<?php echo $book['img_url']?>" />
+                            <?php if ($book['already_read']): ?>
+                                <span class="glyphicon glyphicon-ok-circle jr-glyphicon-list" aria-hidden="true"></span>
+                            <?php endif ?>
                         </div>
                     </div>
                     <div class="col-xs-7 block-title">
