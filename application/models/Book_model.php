@@ -181,14 +181,25 @@ class Book_model extends CI_Model
      * 
      * @returns les infos des livres
      */
-    public function getBooks($idCustomer)
+    public function getBooks($idCustomer, $paramSearch)
     {
         $books = array();
-        $result = $this->db->select('*')
+        if ($paramSearch != '') {
+            $where = ($paramSearch == 'already_read') ? 1 : 0;
+            $result = $this->db->select('*')
             ->from('customer_book')
             ->where('id_customer', $idCustomer)
+            ->where('already_read', $where)
             ->get()
             ->result();
+        }
+        else {
+            $result = $this->db->select('*')
+                ->from('customer_book')
+                ->where('id_customer', $idCustomer)
+                ->get()
+                ->result();
+        }
 
         if (count($result) > 0)
         {
@@ -413,6 +424,12 @@ class Book_model extends CI_Model
         }
     }
 
+    /**
+     * Enregistre la description du livre
+     * 
+     * @params $idBook 
+     * @params $description
+     */
     public function setDescription($idBook, $description)
     {
         return $this->db->set('resume',  $description)
@@ -421,6 +438,11 @@ class Book_model extends CI_Model
             ->update($this->table);
     }
 
+    /**
+     * Vérifie si le livre a une description
+     * 
+     * @params $idBook
+     */
     public function isDescription($idBook)
     {
         $result = $this->db->select('resume')
@@ -434,5 +456,16 @@ class Book_model extends CI_Model
         }
 
         return 1;
+    }
+
+    /**
+     * Update la table pour marquer le livre comme lu ou non
+     */
+    public function toggleReadBook($idBook, $idCustomer, $hasEbook)
+    {
+        return $this->db->set('already_read',  $hasEbook)
+            ->where('id_customer', $idCustomer)
+            ->where('id_book', $idBook)
+            ->update('customer_book');
     }
 }

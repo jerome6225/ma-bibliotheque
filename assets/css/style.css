@@ -59,6 +59,17 @@ body {font-family: "Comic Sans MS", cursive, sans-serif;}
     margin-top:15px;
 }
 .easy-autocomplete {display: inline-block}
+
+.description_book > div {margin-bottom: 15px;}
+
+.jr-glyphicon.glyphicon-remove {color: rgb(149, 0, 0);}
+.jr-glyphicon.glyphicon-ok {color: rgb(0, 149, 0);}
+
+.jr-glyphicon {
+    font-size: 25px;
+    cursor: pointer;
+}
+
 @media screen and (max-width: 1450px) {
     .category-img img {height: 150px;}
     .book-category-title {font-size: 14px;}

@@ -7,6 +7,16 @@
                 </a>
             </li>
             <li class="active">
+                <a href="<?php echo site_url(array('bookList', 'list', 'already_read')) ?>">
+                    <img src="<?php echo img_url('books-stack-of-three.png') ?>" />  Mes livres Lus
+                </a>
+            </li>
+            <li class="active">
+                <a href="<?php echo site_url(array('bookList', 'list', 'not_read')) ?>">
+                    <img src="<?php echo img_url('books-stack-of-three.png') ?>" />  Mes livres à lire
+                </a>
+            </li>
+            <li class="active">
                 <a href="<?php echo site_url(array('bookAdd', 'displayAddBook')) ?>">
                     <img src="<?php echo img_url('open-book.png') ?>" />  Enregistrer un livre
                 </a>

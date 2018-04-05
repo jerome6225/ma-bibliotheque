@@ -17,8 +17,8 @@ class BookList extends CI_Controller
 
         $this->load->library('layout');
         $this->load->model('book_model', 'bookManager');
-
-        $dataBooks = $this->bookManager->getBooks($this->session->userdata('member-id'));
+        $paramList = ($this->uri->segment(3)) ? $this->uri->segment(3) : '';
+        $dataBooks = $this->bookManager->getBooks($this->session->userdata('member-id'), $paramList);
         $genres = array();
         foreach ($dataBooks as $book) {
             $genres[$book['genre']] = $book['genre'];

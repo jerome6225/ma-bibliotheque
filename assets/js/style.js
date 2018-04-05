@@ -24,10 +24,12 @@ $(function(){
 
         $(document).on('click', '.to_read_book', function(){
             $('.read_book').show();
+            $('.jr_banner').css('z-index', 'inherit');
         })
 
         $(document).on('click', '#no_read_book', function(){
             $('.read_book').hide();
+            $('.jr_banner').css('z-index', '500');
         })
 
        /* Book.renderTo("area");*/

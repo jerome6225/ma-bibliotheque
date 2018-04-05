@@ -53,5 +53,40 @@ $(function(){
 		};
 
 	  $("#search").easyAutocomplete(options);
-	  $("#search-mobile").easyAutocomplete(options);
+		$("#search-mobile").easyAutocomplete(options);
+		
+		$(document).on('click', '.jr-glyphicon', function(e){
+			var hasEbook   = true;
+			var idBook     = $(this).data('book');
+			var idCustomer = $(this).data('customer');
+
+			if ($(this).hasClass('glyphicon-ok')){
+				hasEbook = false;
+			}
+
+			$.ajax({
+				type: 'POST',
+				url: $(this).data('action'),
+				async: false,
+				data: {
+					hasEbook: hasEbook,
+					idBook: idBook,
+					idCustomer: idCustomer,
+				},
+				success: function(jsonData)
+				{
+					if (hasEbook == false) {
+						$('.jr-glyphicon').removeClass('glyphicon-ok');
+						$('.jr-glyphicon').addClass('glyphicon-remove');
+					}
+					else {
+						$('.jr-glyphicon').removeClass('glyphicon-remove');
+						$('.jr-glyphicon').addClass('glyphicon-ok');
+					}
+				},
+				error: function(XMLHttpRequest, textStatus, errorThrown) {
+					alert(errorThrown);
+				}
+			});
+		});
 });

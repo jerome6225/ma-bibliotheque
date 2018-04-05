@@ -33,14 +33,15 @@ class Book extends CI_Controller
             if (file_exists('./assets/ebooks/'.$name.'.'.$ext))
             {
                 $dataBook['urlEbook']   = site_url(array('book', 'downloadEbook', $name, $ext));
-
                 $dataBook['urlEbookJs'] = site_url().'/../assets/ebooks/'.$name.'.'.$ext;
                 $dataBook['nameEbook']  = $name.'.'.$ext;
             }
         }
 
         $dataBook['isDescription'] = $this->bookManager->isDescription($idBook);
+        $dataBook['read']          = $customerBook->already_read;
         $dataBook['hasEbook']      = $customerBook->ebook;
+        $dataBook['idBook']        = $idBook;
         $dataBook['page']          = 'mon_livre';
 
         $dataBook['banner'] = array(
@@ -90,5 +91,18 @@ class Book extends CI_Controller
             return true;
         }
         return false;
+    }
+
+    public function toggleReadBookAjax()
+    {
+        $idBook     = $this->input->post('idBook');
+        $idCustomer = $this->input->post('idCustomer');
+        $hasEbook   = ($this->input->post('hasEbook') == 'true') ? true : false;
+
+        $this->load->model('book_model', 'bookManager');
+
+        $this->bookManager->toggleReadBook($idBook, $idCustomer, $hasEbook);
+
+        return true;
     }
 }
