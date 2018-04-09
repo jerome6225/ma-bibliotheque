@@ -1,4 +1,4 @@
-<div class="col-xs-12 col-md-10 add_book_form">
+<div class="col-xs-12 col-md-10 add_book_form content_page">
     <h1>Enregistrer un livre</h1>
     <form id="form_login" method="post" action="<?php echo $url_add_book ?>" enctype="multipart/form-data">
         <div class="form-group">

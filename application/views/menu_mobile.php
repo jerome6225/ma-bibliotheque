@@ -12,6 +12,8 @@
             <ul class="nav navbar-nav">
                 <li><a href="<?php echo site_url(array('homePage', 'deconnexion')) ?>">Déconnexion</a></li>
                 <li><a href="<?php echo site_url(array('bookList', 'list')) ?>">Mes livres</a></li>
+                <li><a href="<?php echo site_url(array('bookList', 'list', 'already_read')) ?>">Mes livres Lus</a></li>
+                <li><a href="<?php echo site_url(array('bookList', 'list', 'not_read')) ?>">Mes livres à lire</a></li>
                 <li><a href="<?php echo site_url(array('bookAdd', 'displayAddBook')) ?>">Enregistrer un livre</a></li>
                 <?php if (isset($genres)): ?>
                     <li class="submenu"><a href="#">Trier par genre</a>
